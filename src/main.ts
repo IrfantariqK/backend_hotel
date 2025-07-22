@@ -45,7 +45,7 @@ async function bootstrap() {
   });
 
   // Raw body for Stripe webhooks
-  app.use('/payment/webhook', (req, res, next) => {
+  app.use('/payment/webhook', (req, next) => {
     req.setEncoding('utf8');
     let data = '';
     req.on('data', (chunk) => {
@@ -61,7 +61,6 @@ async function bootstrap() {
   await app.listen(port);
   
   logger.log(`🚀 Application is running on: http://localhost:${port}`);
-  logger.log(`📖 API Documentation: http://localhost:${port}/api`);
 }
 
 bootstrap().catch((error) => {

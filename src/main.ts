@@ -5,6 +5,7 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import * as dotenv from 'dotenv';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   dotenv.config();
@@ -45,13 +46,14 @@ async function bootstrap() {
   });
 
   // Raw body for Stripe webhooks
-  app.use('/payment/webhook', (req, next) => {
+  app.use('/payment/webhook', (req: Request, res: Response, next: NextFunction) => {
     req.setEncoding('utf8');
     let data = '';
-    req.on('data', (chunk) => {
+    req.on('data', (chunk: string) => {
       data += chunk;
     });
     req.on('end', () => {
+      // @ts-ignore: augment req with body property since it's raw data here
       req.body = data;
       next();
     });

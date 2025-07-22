@@ -15,23 +15,11 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string) {
-    // 1. Check users collection
-    let user = await this.usersService.findByEmail(email);
+    // Check unified users collection (user/kitchen/delivery)
+    const user = await this.usersService.findByEmail(email);
     if (user && await this.comparePassword(password, user.password)) {
       const { password, ...result } = user.toObject();
-      return { ...result, role: 'user', collection: 'users' };
-    }
-    // 2. Check kitchens collection
-    let kitchen = await this.kitchenService.findByEmail(email);
-    if (kitchen && await this.comparePassword(password, kitchen.password)) {
-      const { password, ...result } = kitchen.toObject();
-      return { ...result, role: 'kitchen', collection: 'kitchens' };
-    }
-    // 3. Check deliveries collection
-    let delivery = await this.deliveryService.findByEmail(email);
-    if (delivery && await this.comparePassword(password, delivery.password)) {
-      const { password, ...result } = delivery.toObject();
-      return { ...result, role: 'delivery', collection: 'deliveries' };
+      return { ...result, type: 'user' };
     }
     return null;
   }

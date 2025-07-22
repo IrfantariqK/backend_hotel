@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Request, UseGuards, Get, Param, Headers, Req } from '@nestjs/common';
+import { Controller, Post, Body, Request, UseGuards, Get, Param, Headers, Req, ValidationPipe, UsePipes } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { Request as ExpressRequest } from 'express';
+import { CreatePaymentIntentDto } from '../common/dto/base.dto';
 
 @Controller('payment')
 export class PaymentController {
@@ -13,8 +14,8 @@ export class PaymentController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('user')
   @Post('intent')
-  async createIntent(@Body() body: any, @Request() req) {
-    // body: { orderId, amount }
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async createIntent(@Body() body: CreatePaymentIntentDto, @Request() req) {
     return this.paymentService.createIntent(body.orderId, req.user.userId, body.amount);
   }
 
@@ -22,16 +23,15 @@ export class PaymentController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('user')
   @Post('cod')
-  async createCOD(@Body() body: any, @Request() req) {
-    // body: { orderId, amount }
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async createCOD(@Body() body: CreatePaymentIntentDto, @Request() req) {
     return this.paymentService.createCOD(body.orderId, req.user.userId, body.amount);
   }
 
   // Stripe webhook
   @Post('webhook')
   async stripeWebhook(@Req() req: ExpressRequest, @Headers('stripe-signature') sig: string) {
-    // Webhook logic to be implemented (Stripe event handling)
-    return { received: true };
+    return this.paymentService.handleWebhook(req.body, sig);
   }
 
   // Get payment status by orderId

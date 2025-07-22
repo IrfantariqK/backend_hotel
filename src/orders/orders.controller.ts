@@ -27,18 +27,28 @@ export class OrdersController {
     return this.ordersService.findById(id);
   }
 
-  // Role-based: Get orders
+  // User: Get user's orders
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Get()
-  async findOrders(@Request() req) {
-    if (req.user.role === 'user') {
-      return this.ordersService.findByUser(req.user.userId);
-    } else if (req.user.role === 'kitchen') {
-      return this.ordersService.findByKitchen();
-    } else if (req.user.role === 'delivery') {
-      return this.ordersService.findByDelivery(req.user.userId);
-    }
-    return [];
+  @Roles('user')
+  @Get('user')
+  async getUserOrders(@Request() req) {
+    return this.ordersService.findByUser(req.user.userId);
+  }
+
+  // Kitchen: Get all orders for kitchen
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('kitchen')
+  @Get('kitchen')
+  async getKitchenOrders(@Request() req) {
+    return this.ordersService.findByKitchen();
+  }
+
+  // Delivery: Get assigned orders
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('delivery')
+  @Get('delivery')
+  async getDeliveryOrders(@Request() req) {
+    return this.ordersService.findByDelivery(req.user.userId);
   }
 
   // Kitchen/Delivery: Update order status
